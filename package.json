@@ -4,14 +4,17 @@
   "private": true,
   "dependencies": {
     "axios": "^0.18.0",
+    "gh-pages": "^2.0.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
   },
-  "homepage" : "http://Ermakoy.github.io/kotlin-front",
+  "homepage": "http://Ermakoy.github.io/kotlin-front",
   "devDependencies": {
     "react-scripts-kotlin": "3.0.3"
   },
   "scripts": {
+    "predeploy": "yarn run build",
+    "deploy": "gh-pages -b master -d build",
     "start": "react-scripts-kotlin start",
     "build": "react-scripts-kotlin build",
     "eject": "react-scripts-kotlin eject",
