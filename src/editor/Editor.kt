@@ -51,10 +51,14 @@ external interface AxiosResponse<T> {
 
 data class ZipResult(val country: String, val state: String, val city: String)
 
+data class DateResult(val default: String, val holiday: Boolean)
+
 interface AxiosProps : RProps {
 }
 
 interface AxiosState : RState {
+    var date: String
+    var dateResult: DateResult
     var zipCode: String
     var zipResult: ZipResult
     var errorMessage: String
@@ -66,8 +70,15 @@ external interface ZipData {
     val city: String
 }
 
+external interface DateData {
+    val default: String
+    val holiday: Boolean
+}
+
 class AxiosSearch(props: AxiosProps) : RComponent<AxiosProps, AxiosState>(props) {
     override fun AxiosState.init(props: AxiosProps) {
+        date = ""
+        dateResult = DateResult("", true)
         zipCode = ""
         zipResult = ZipResult("", "", "")
         errorMessage = ""
@@ -105,33 +116,45 @@ class AxiosSearch(props: AxiosProps) : RComponent<AxiosProps, AxiosState>(props)
         }
     }
 
+    private fun remoteSearchDate(date: String) {
+        val config: AxiosConfigSettings = jsObject {
+            url = "https://datazen.katren.ru/calendar/day/$date/"
+        }
+
+        axios<DateData>(config).then { response ->
+            setState {
+                dateResult = DateResult(response.data.default, response.data.holiday)
+                errorMessage = ""
+            }
+            console.log(response)
+        }.catch { error ->
+            setState {
+                dateResult = DateResult("", false)
+                errorMessage = error.message ?: ""
+            }
+            console.log(error)
+        }
+    }
+
+    private fun handleDateChange(targetValue: String) {
+        remoteSearchDate(targetValue)
+    }
+
     override fun RBuilder.render() {
-        val infoText = "Enter a valid US ZIP code below"
         div {
-            p { +infoText }
-            input(type = InputType.text, name = "zipCode") {
-                key = "zipCode"
+            p {+"Выберите дату"}
+            input(type = InputType.date, name = "date") {
+                key = "dateInput"
                 attrs {
-                    value = state.zipCode
-                    placeholder = "Enter ZIP code"
-                    title = infoText
                     onChangeFunction = {
                         val target = it.target as HTMLInputElement
-                        handleChange(target.value)
+                        handleDateChange(target.value)
                     }
                 }
             }
             br {}
             h1 {
-                +"${state.zipCode} ZIP code belongs to: "
-                +"${state.zipResult.country} ${state.zipResult.state} ${state.zipResult.city} "
-                if (!state.errorMessage.isEmpty()) div {
-                    attrs.jsStyle = js {
-                        color = "red"
-                    }
-                    +"Error while searching for ZIP code: "
-                    +state.errorMessage
-                }
+                +"Этот день ${if(state.dateResult.holiday) "" else "не " }является выходным"
             }
         }
     }
