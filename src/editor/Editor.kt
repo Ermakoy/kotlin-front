@@ -98,7 +98,7 @@ class AxiosSearch(props: AxiosProps) : RComponent<AxiosProps, AxiosState>(props)
 
     override fun RBuilder.render() {
         div {
-            p {+"Выберите дату"}
+            h1 {+"Выберите дату"}
             input(type = InputType.date, name = "date") {
                 key = "dateInput"
                 attrs {
