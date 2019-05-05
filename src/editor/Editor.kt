@@ -49,8 +49,6 @@ external interface AxiosResponse<T> {
     val config: AxiosConfigSettings
 }
 
-data class ZipResult(val country: String, val state: String, val city: String)
-
 data class DateResult(val default: String, val holiday: Boolean)
 
 interface AxiosProps : RProps {
@@ -59,15 +57,7 @@ interface AxiosProps : RProps {
 interface AxiosState : RState {
     var date: String
     var dateResult: DateResult
-    var zipCode: String
-    var zipResult: ZipResult
     var errorMessage: String
-}
-
-external interface ZipData {
-    val country: String
-    val state: String
-    val city: String
 }
 
 external interface DateData {
@@ -79,41 +69,7 @@ class AxiosSearch(props: AxiosProps) : RComponent<AxiosProps, AxiosState>(props)
     override fun AxiosState.init(props: AxiosProps) {
         date = ""
         dateResult = DateResult("", true)
-        zipCode = ""
-        zipResult = ZipResult("", "", "")
         errorMessage = ""
-    }
-
-    private fun remoteSearchZip(zipCode: String) {
-        val config: AxiosConfigSettings = jsObject {
-            url = "https://ziptasticapi.com/$zipCode"
-            timeout = 3000
-        }
-
-        axios<ZipData>(config).then { response ->
-            setState {
-                zipResult = ZipResult(response.data.country, response.data.state, response.data.city)
-                errorMessage = ""
-            }
-            console.log(response)
-        }.catch { error ->
-            setState {
-                zipResult = ZipResult("", "", "")
-                errorMessage = error.message ?: ""
-            }
-            console.log(error)
-        }
-    }
-
-    private fun handleChange(targetValue: String) {
-        setState {
-            zipCode = targetValue
-            zipResult = ZipResult("", "", "")
-            errorMessage = ""
-        }
-        if (targetValue.length == 5) {
-            remoteSearchZip(targetValue)
-        }
     }
 
     private fun remoteSearchDate(date: String) {
